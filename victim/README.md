@@ -12,15 +12,20 @@ Clone and build llama.cpp:
 cd ~/
 git clone https://github.com/ggerganov/llama.cpp.git
 cd llama.cpp
-make
+mkdir build
+cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake --build . --config Release -j$(nproc)
 ```
 
 For better performance, build with optimizations:
 
 ```bash
-make LLAMA_OPENBLAS=1  # Use OpenBLAS
-# OR
-make LLAMA_CUBLAS=1    # Use CUDA (if NVIDIA GPU available)
+# Use OpenBLAS
+cmake .. -DCMAKE_BUILD_TYPE=Release -DGGML_BLAS=ON -DGGML_BLAS_VENDOR=OpenBLAS
+
+# OR use CUDA (if NVIDIA GPU available)
+cmake .. -DCMAKE_BUILD_TYPE=Release -DGGML_CUDA=ON
 ```
 
 ### 2. Download TinyLLaMA Model
@@ -49,7 +54,7 @@ Run a simple inference test:
 
 ```bash
 cd ~/llama.cpp
-./main -m models/tinyllama-1.1b-q4_0.gguf \
+./build/bin/llama-cli -m models/tinyllama-1.1b-q4_0.gguf \
   -t 1 \
   -c 512 \
   -n 64 \
@@ -70,7 +75,7 @@ For experiments, pin the victim to a specific logical CPU:
 
 ```bash
 # Pin to CPU 2 (check SMT siblings first)
-taskset -c 2 ./main -m models/tinyllama-1.1b-q4_0.gguf \
+taskset -c 2 ./build/bin/llama-cli -m models/tinyllama-1.1b-q4_0.gguf \
   -t 1 -c 512 -n 64 --temp 0 \
   -p "Explain caching with an example."
 ```
@@ -102,13 +107,13 @@ Test different memory working sets:
 
 ```bash
 # Small context (128 tokens)
-taskset -c 2 ./main -m models/tinyllama-1.1b-q4_0.gguf -t 1 -c 128 -n 16 --temp 0 -p "Test."
+taskset -c 2 ./build/bin/llama-cli -m models/tinyllama-1.1b-q4_0.gguf -t 1 -c 128 -n 16 --temp 0 -p "Test."
 
 # Medium context (512 tokens)
-taskset -c 2 ./main -m models/tinyllama-1.1b-q4_0.gguf -t 1 -c 512 -n 64 --temp 0 -p "Test."
+taskset -c 2 ./build/bin/llama-cli -m models/tinyllama-1.1b-q4_0.gguf -t 1 -c 512 -n 64 --temp 0 -p "Test."
 
 # Large context (2048 tokens)
-taskset -c 2 ./main -m models/tinyllama-1.1b-q4_0.gguf -t 1 -c 2048 -n 256 --temp 0 -p "Test."
+taskset -c 2 ./build/bin/llama-cli -m models/tinyllama-1.1b-q4_0.gguf -t 1 -c 2048 -n 256 --temp 0 -p "Test."
 ```
 
 ### S2: Quantization Width Sweep
@@ -117,13 +122,13 @@ Test different quantization levels:
 
 ```bash
 # Q4_0 quantization (4-bit)
-taskset -c 2 ./main -m models/tinyllama-1.1b-q4_0.gguf -t 1 -c 512 -n 64 --temp 0 -p "Test."
+taskset -c 2 ./build/bin/llama-cli -m models/tinyllama-1.1b-q4_0.gguf -t 1 -c 512 -n 64 --temp 0 -p "Test."
 
 # Q5_0 quantization (5-bit)
-taskset -c 2 ./main -m models/tinyllama-1.1b-q5_0.gguf -t 1 -c 512 -n 64 --temp 0 -p "Test."
+taskset -c 2 ./build/bin/llama-cli -m models/tinyllama-1.1b-q5_0.gguf -t 1 -c 512 -n 64 --temp 0 -p "Test."
 
 # Q8_0 quantization (8-bit)
-taskset -c 2 ./main -m models/tinyllama-1.1b-q8_0.gguf -t 1 -c 512 -n 64 --temp 0 -p "Test."
+taskset -c 2 ./build/bin/llama-cli -m models/tinyllama-1.1b-q8_0.gguf -t 1 -c 512 -n 64 --temp 0 -p "Test."
 ```
 
 ### S3: Access Pattern / Decoding Sweep
@@ -132,10 +137,10 @@ Test different decoding strategies:
 
 ```bash
 # Greedy decoding (deterministic, predictable branches)
-taskset -c 2 ./main -m models/tinyllama-1.1b-q4_0.gguf -t 1 -c 512 -n 64 --temp 0 -p "Test."
+taskset -c 2 ./build/bin/llama-cli -m models/tinyllama-1.1b-q4_0.gguf -t 1 -c 512 -n 64 --temp 0 -p "Test."
 
 # Sampling decoding (stochastic, unpredictable branches)
-taskset -c 2 ./main -m models/tinyllama-1.1b-q4_0.gguf -t 1 -c 512 -n 64 \
+taskset -c 2 ./build/bin/llama-cli -m models/tinyllama-1.1b-q4_0.gguf -t 1 -c 512 -n 64 \
   --temp 1.0 --top-k 40 --top-p 0.95 -p "Test."
 ```
 
@@ -165,7 +170,7 @@ cd /mnt/ncsudrive/d/dhjani2/microarch_finalproject
 
 python3 driver/driver.py \
   --root . \
-  --victim-bin ~/llama.cpp/main \
+  --victim-bin ~/llama.cpp/build/bin/llama-cli \
   --model ~/llama.cpp/models/tinyllama-1.1b-q4_0.gguf \
   --quant q4_0 \
   --ctx 512 \
@@ -206,6 +211,11 @@ For best experimental results:
 
 ## Troubleshooting
 
+**Issue:** `llama-cli: command not found`
+```
+Solution: Binary is in build/bin/ directory. Use full path: ~/llama.cpp/build/bin/llama-cli
+```
+
 **Issue:** Model not loading
 ```
 Solution: Check model path and ensure .gguf file is complete
@@ -213,7 +223,7 @@ Solution: Check model path and ensure .gguf file is complete
 
 **Issue:** Slow inference
 ```
-Solution: Use smaller model or enable OpenBLAS/CUDA builds
+Solution: Use smaller model or rebuild with OpenBLAS/CUDA (see cmake options above)
 ```
 
 **Issue:** Can't pin to CPU
