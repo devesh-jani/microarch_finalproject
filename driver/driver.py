@@ -125,7 +125,11 @@ def main() -> int:
             pass
         # Stop freq sampler
         fs.stop()
-        fs.join(timeout=1)
+        try:
+            fs.join(timeout=1)
+        except (TypeError, AttributeError):
+            # Python 3.9 threading bug workaround
+            pass
 
     timings["total_ms"] = int((time.time() - t0) * 1000)
 

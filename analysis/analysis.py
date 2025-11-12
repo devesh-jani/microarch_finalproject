@@ -30,7 +30,7 @@ from sklearn.preprocessing import StandardScaler
 def load_run_data(run_dir: Path) -> Tuple[pd.DataFrame, Dict]:
     """Load probe CSV and metadata for a single run."""
     meta_path = run_dir / "meta.json"
-    probe_path = run_dir / "probe.csv"
+    probe_path = run_dir / "attacker_stdout.txt"
     
     if not meta_path.exists() or not probe_path.exists():
         return None, None

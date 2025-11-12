@@ -137,7 +137,7 @@ Test different decoding strategies:
 
 ```bash
 # Greedy decoding (deterministic, predictable branches)
-taskset -c 2 ./build/bin/llama-cli -m models/tinyllama-1.1b-q4_0.gguf -t 1 -c 512 -n 64 --temp 0 -p "Test."
+ taskset -c 2 ./build/bin/llama-cli -m models/tinyllama-1.1b-q4_0.gguf -t 1 -c 512 -n 64 --temp 0 -p "Test."
 
 # Sampling decoding (stochastic, unpredictable branches)
 taskset -c 2 ./build/bin/llama-cli -m models/tinyllama-1.1b-q4_0.gguf -t 1 -c 512 -n 64 \
