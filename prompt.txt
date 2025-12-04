@@ -1,0 +1,4 @@
+NL:Explain caching with an example.
+MATH:Solve the integral ∫(x^2 + 3x + 1) dx step by step.
+CODE:Write a Python function to compute factorial using recursion.
+TECH:Describe how virtual memory works in modern OS.

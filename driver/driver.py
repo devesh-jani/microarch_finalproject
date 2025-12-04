@@ -37,7 +37,7 @@ def parse_args() -> argparse.Namespace:
     ap.add_argument("--temp", type=float, default=0.0)
     ap.add_argument("--top-k", dest="top_k", type=int, default=None)
     ap.add_argument("--top-p", dest="top_p", type=float, default=None)
-    ap.add_argument("--prompt", type=str, default="Explain caching with an example.")
+    ap.add_argument("--prompt", type=str, default="")
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--repeat", type=int, default=1, help="repeat index (1-based)")
     ap.add_argument("--victim-cpu", type=int, required=True)
@@ -47,6 +47,8 @@ def parse_args() -> argparse.Namespace:
     ap.add_argument("--iters", type=int, default=2000, help="probe iterations (if applicable)")
     ap.add_argument("--warmup-ms", type=int, default=100)
     ap.add_argument("--freq-sample-cpu", type=int, default=None, help="CPU id for freq sampling (default: attacker cpu)")
+    ap.add_argument("--prompt-label", type=str, default="custom")
+
     return ap.parse_args()
 
 
@@ -78,12 +80,22 @@ def main() -> int:
     t0 = time.time()
 
     # Build victim command
+    # victim_cmd = [
+    #     args.victim_bin,
+    #     "-m", args.model,
+    #     "-t", "1",
+    #     "-c", str(args.ctx),
+    #     "-n-predict", str(args.npredict),
+    #     "-p", args.prompt,
+    #     "--seed", str(args.seed),
+    # ]
+
     victim_cmd = [
         args.victim_bin,
         "-m", args.model,
         "-t", "1",
         "-c", str(args.ctx),
-        "-n-predict", str(args.npredict),
+        "-n", str(args.npredict),
         "-p", args.prompt,
         "--seed", str(args.seed),
     ]
@@ -152,7 +164,8 @@ def main() -> int:
         "top_p": args.top_p,
         "seed": args.seed,
         "repeat_idx": args.repeat,
-        "prompt_label": "custom",
+        "prompt": args.prompt,
+        "prompt_label": args.prompt_label,
         "prompt_hash": "",  # fill if you hash inputs
         "durations_ms": timings,
         "versions": {"driver": "v0.1", "probe_git": None, "analysis_git": None, "llama_cpp_git": None},

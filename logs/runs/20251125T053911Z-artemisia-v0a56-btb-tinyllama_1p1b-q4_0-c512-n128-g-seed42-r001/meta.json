@@ -1,0 +1,33 @@
+{
+  "attacker_cpu": 56,
+  "ctx": 512,
+  "decoding": "greedy",
+  "durations_ms": {
+    "probe_ms": 506,
+    "total_ms": 684,
+    "victim_warmup_ms": 100
+  },
+  "host": "artemisia",
+  "model": "/home/mjoshi7/llama.cpp/models/tinyllama-1.1b-q4_0.gguf",
+  "model_tag": "tinyllama_1p1b",
+  "npredict": 128,
+  "probe": "btb",
+  "prompt": "Compute the integral \u222b 0\u2192\u221e x^3 * e^(\u2212x^2/2) dx and show each substitution step clearly. Write using long derivations.",
+  "prompt_hash": "",
+  "prompt_label": "math",
+  "quant": "q4_0",
+  "repeat_idx": 1,
+  "run_id": "20251125T053911Z-artemisia-v0a56-btb-tinyllama_1p1b-q4_0-c512-n128-g-seed42-r001",
+  "seed": 42,
+  "temp": 0.0,
+  "timestamp_utc": "2025-11-25T05:39:11Z",
+  "top_k": null,
+  "top_p": null,
+  "versions": {
+    "analysis_git": null,
+    "driver": "v0.1",
+    "llama_cpp_git": null,
+    "probe_git": null
+  },
+  "victim_cpu": 0
+}

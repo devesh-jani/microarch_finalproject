@@ -18,8 +18,8 @@ echo
 # Configuration
 LLAMA_BIN="${HOME}/llama.cpp/build/bin/llama-cli"
 MODEL_PATH="${HOME}/llama.cpp/models/tinyllama-1.1b-q4_0.gguf"
-VICTIM_CPU=2
-ATTACKER_CPU=6  # Adjust based on your SMT topology
+VICTIM_CPU=0
+ATTACKER_CPU=56  # Adjust based on your SMT topology
 
 # Check if probes are built
 echo "1. Checking attacker probes..."

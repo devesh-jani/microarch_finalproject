@@ -71,7 +71,7 @@ def load_all_runs(logs_dir: Path, warmup_discard: int = 500) -> pd.DataFrame:
         
         # Add metadata columns
         for key in ['run_id', 'probe', 'model_tag', 'quant', 'ctx', 'npredict', 
-                    'decoding', 'temp', 'seed', 'repeat_idx', 'victim_cpu', 'attacker_cpu']:
+                    'decoding', 'temp', 'top_k', 'seed', 'repeat_idx', 'victim_cpu', 'attacker_cpu', 'prompt_label', 'prompt']:
             if key in meta:
                 probe_df[key] = meta[key]
         
@@ -97,7 +97,7 @@ def compute_run_statistics(df: pd.DataFrame) -> pd.DataFrame:
     ]).reset_index()
     
     # Add metadata back
-    meta_cols = ['probe', 'model_tag', 'quant', 'ctx', 'npredict', 'decoding', 'temp', 'repeat_idx']
+    meta_cols = ['probe', 'model_tag', 'quant', 'ctx', 'npredict', 'decoding', 'temp', 'repeat_idx', 'prompt_label', 'prompt']
     for col in meta_cols:
         if col in df.columns:
             stats = stats.merge(
@@ -210,13 +210,25 @@ def train_classifier(stats: pd.DataFrame, target_col: str, output_dir: Path):
     # Select features and target
     feature_cols = ['mean', 'median', 'std', 'p10', 'p90', 'p99']
     X = stats[feature_cols].values
-    y = stats[target_col].values
+    #y = stats[target_col].values
+    # Handle continuous floats like temperature by converting to categorical strings
+    if target_col == "temp":
+        y = stats[target_col].astype(str).values
+    else:
+        y = stats[target_col].values
+
     
     # Skip if only one class
     if len(np.unique(y)) < 2:
         print(f"Warning: Only one class in '{target_col}', skipping classifier")
         return
     
+    # Convert continuous values (0.0, 0.5, 0.8) to categorical strings
+    if target_col == "temp":
+        y = stats[target_col].astype(str).values
+    else:
+        y = stats[target_col].values
+
     # Train/test split
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.3, random_state=42, stratify=y
@@ -322,6 +334,22 @@ def main():
     
     if 'decoding' in stats.columns:
         train_classifier(stats, 'decoding', output_dir)
+
+    if 'temp' in stats.columns:
+        train_classifier(stats, 'temp', output_dir)
+
+    if 'prompt_label' in stats.columns:
+        train_classifier(stats, 'prompt_label', output_dir)
+
+
+
+    # if 'npredict' in stats.columns:
+    #     train_classifier(stats, 'npredict', output_dir)
+
+    # if 'top_k' in stats.columns:
+    #     train_classifier(stats, 'top_k', output_dir)
+
+
     
     print(f"\nAnalysis complete! Figures saved to {output_dir}")
 
